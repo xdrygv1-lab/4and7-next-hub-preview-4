@@ -170,7 +170,7 @@ document.getElementById('g47f').addEventListener('submit',function(e){e.preventD
       </div>
       <label class="f">상황 (AI 대표가 속으로 가진 고민)<textarea id="notes" rows="3" placeholder="예: 내년 공장 이전 고민, 자녀는 사업에 관심 없음. 상호·실명은 쓰지 마세요."></textarea></label>
       <label class="f">연습 시간 (시간이 되면 자동으로 끝나요)<select id="dur"><option value="10">10분</option><option value="20">20분</option><option value="30" selected>30분</option><option value="45">45분</option><option value="60">60분</option></select></label>
-      <label class="f">연습하는 사람 (지점장이 기록을 볼 때 씀)<input id="who" placeholder="이름 또는 호칭"></label>
+      <div class="g2"><label class="f">연습하는 사람 (꼭 넣어 주세요)<input id="who" placeholder="이름 또는 호칭" required></label><label class="f">소속 지점<input id="branch" placeholder="예: 서울 1지점"></label></div>
     </section>
 
     <section class="panel">
@@ -231,7 +231,7 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const KEY = 'rp-live-v2';
-const FIELDS = ['preset','dur','cast','rel','level','style','ind','form','sales','profit','age','kids','notes','who','cRate','cWait'];
+const FIELDS = ['preset','dur','cast','rel','level','style','ind','form','sales','profit','age','kids','notes','who','branch','cRate','cWait'];
 const CHECKS = ['cEar','cFill','cRec'];
 let EP = 'https://script.google.com/macros/s/AKfycbyoClKoXiU_KO18R6LLJP-hvpZCureFI2SEC8JJu0YRnHKc1eC9Y0s7A17NWJhkFwr1vQ/exec', stage = 'AP', hist = [];
 const TP = () => { try { return localStorage.getItem('team_pass') || ''; } catch (e) { return ''; } };
@@ -260,10 +260,10 @@ function load(){ try { const o = JSON.parse(localStorage.getItem(KEY) || 'null')
 function setStage(v){ stage = v; document.querySelectorAll('#stages button').forEach(b => b.classList.toggle('on', b.dataset.v === v)); $('stageTip').textContent = STAGE[v].tip; save(); }
 function showRanges(){ $('cRateV').textContent = (+$('cRate').value).toFixed(2) + '배'; $('cWaitV').textContent = (+$('cWait').value).toFixed(1) + '초'; }
 function caseObj(){ return { ind: $('ind').value, form: $('form').value, sales: $('sales').value, profit: $('profit').value, age: $('age').value, kids: $('kids').value, notes: [STAGE[stage].note, cast().note, TALK, $('notes').value].filter(Boolean).join('\n') }; }
-function post(o){ return fetch(EP, { method: 'POST', body: JSON.stringify(Object.assign({ action: 'rp2', sub: 'end', usage: L.usage, preset: $('preset').value, pass: TP(), mode: 'ceo', stage, cast: $('cast').value, rel: $('rel').value, level: $('level').value, style: $('style').value, case: caseObj(), who: $('who').value }, o)) }).then(r => r.json()); }
+function post(o){ return fetch(EP, { method: 'POST', body: JSON.stringify(Object.assign({ action: 'rp2', sub: 'end', usage: L.usage, preset: $('preset').value, pass: TP(), mode: 'ceo', stage, cast: $('cast').value, rel: $('rel').value, level: $('level').value, style: $('style').value, case: caseObj(), who: $('who').value.trim(), branch: $('branch').value.trim() }, o)) }).then(r => r.json()); }
 const wire = () => hist.filter(m => !m.local).map(m => ({ role: m.role, text: m.text }));
 function ready(){
-  if (!SR) { $('state').textContent = '이 브라우저는 음성 대화를 지원하지 않아요. 노트북 크롬이나 엣지로 열어 주세요.'; return false; }
+  if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) || (!SR && !isLive())) { $('state').textContent = '이 브라우저에서는 마이크를 쓸 수 없어요. 크롬이나 엣지로 열어 주세요 (카톡 안에서 열었다면 «다른 브라우저로 열기»).'; return false; }
   if (!EP) { $('state').textContent = '서버 주소가 없어 시작할 수 없어요.'; return false; }
   return true;
 }
@@ -419,7 +419,7 @@ function ask(){
   };
   const feed = last => { let m; while ((m = buf.match(/[.!?…]+["”']?\s|\n/))) { emit(buf.slice(0, m.index + m[0].length)); buf = buf.slice(m.index + m[0].length); } if (last && buf.trim()) { emit(buf); buf = ''; } };
   c.ac = new AbortController();
-  fetch(EP + '/stream', { method: 'POST', signal: c.ac.signal, body: JSON.stringify({ action: 'rp', preset: $('preset').value, mode: 'ceo', stage, cast: $('cast').value, rel: $('rel').value, level: $('level').value, style: $('style').value, case: caseObj(), who: $('who').value, history: wire() }) }).then(async r => {
+  fetch(EP + '/stream', { method: 'POST', signal: c.ac.signal, body: JSON.stringify({ action: 'rp', preset: $('preset').value, mode: 'ceo', stage, cast: $('cast').value, rel: $('rel').value, level: $('level').value, style: $('style').value, case: caseObj(), who: $('who').value.trim(), branch: $('branch').value.trim(), history: wire() }) }).then(async r => {
     if (!r.ok) { const j = await r.json().catch(() => ({})); return fail((j.error || '답을 받지 못했어요.')); }
     const rd = r.body.getReader(), dec = new TextDecoder();
     for (;;) { const { done, value } = await rd.read(); if (done) break; if (!c.on || my !== c.id) return; const t = dec.decode(value, { stream: true }); full += t; buf += t; feed(false); }
@@ -482,7 +482,7 @@ async function liveRenew(){
 /* OpenAI 실시간: 브라우저가 직접 WebRTC 로 연결 (소리는 오디오 트랙, 글자·사용량은 데이터 채널) */
 async function oaStart(greet){
   cstate('idle', '연결하는 중…'); const my = c.id; let r; L.user = L.ai = ''; L.usage = L.usage || { in: 0, out: 0, n: 0, cached: 0 }; L.vEnd = 0; L.connAt = Date.now();
-  try { r = await fetch(EP, { method: 'POST', body: JSON.stringify({ action: 'rp2', sub: 'oatok', pass: TP(), history: wire(), preset: $('preset').value, stage, cast: $('cast').value, rel: $('rel').value, level: $('level').value, style: $('style').value, case: caseObj(), who: $('who').value }) }).then(x => x.json()); } catch (e) { r = { ok: false }; }
+  try { r = await fetch(EP, { method: 'POST', body: JSON.stringify({ action: 'rp2', sub: 'oatok', pass: TP(), history: wire(), preset: $('preset').value, stage, cast: $('cast').value, rel: $('rel').value, level: $('level').value, style: $('style').value, case: caseObj(), who: $('who').value.trim(), branch: $('branch').value.trim() }) }).then(x => x.json()); } catch (e) { r = { ok: false }; }
   if (!c.on || my !== c.id) return;
   if (!r.ok) return cstate('idle', r.error || '연결하지 못했어요. 끝내기를 눌러 주세요.');
   if (!c.stream) return cstate('idle', '마이크를 쓸 수 없어 연결하지 못했어요.');
@@ -511,7 +511,7 @@ async function oaStart(greet){
 }
 async function gmStart(greet){
   cstate('idle', '연결하는 중…'); const my = c.id; let r; L.user = L.ai = ''; L.usage = L.usage || { in: 0, out: 0, n: 0 }; L.vEnd = 0; L.turns = 0;
-  try { r = await fetch(EP, { method: 'POST', body: JSON.stringify({ action: 'rp2', sub: 'gmtok', pass: TP(), history: wire(), preset: $('preset').value, stage, cast: $('cast').value, rel: $('rel').value, level: $('level').value, style: $('style').value, case: caseObj(), who: $('who').value }) }).then(x => x.json()); } catch (e) { r = { ok: false }; }
+  try { r = await fetch(EP, { method: 'POST', body: JSON.stringify({ action: 'rp2', sub: 'gmtok', pass: TP(), history: wire(), preset: $('preset').value, stage, cast: $('cast').value, rel: $('rel').value, level: $('level').value, style: $('style').value, case: caseObj(), who: $('who').value.trim(), branch: $('branch').value.trim() }) }).then(x => x.json()); } catch (e) { r = { ok: false }; }
   if (!c.on || my !== c.id) return;
   if (!r.ok) return cstate('idle', r.error || '연결하지 못했어요. 끝내기를 눌러 주세요.');
   const ws = new WebSocket(r.url); L.ws = ws;
@@ -552,6 +552,7 @@ function sceneUrl(){                   /* 만나는 사람의 성별·나이대�
 
 async function start(){
   if (c.on || !ready()) return;
+  if (!$('who').value.trim()) { $('state').textContent = '연습하는 사람 이름(또는 호칭)을 넣어 주세요. 한 사람당 하루 5번까지 연습할 수 있어요.'; $('who').focus(); return; }
   save(); const sg = STAGE[stage]; hist = []; c.on = true; c.id = Date.now(); c.ear = $('cEar').checked; c.chunks = [];
   if (c.url) { URL.revokeObjectURL(c.url); c.url = ''; }
   const ui = $('callUI'); ui.classList.add('on'); ui.classList.remove('live'); cstate('idle', ''); caption('', '');
@@ -665,7 +666,7 @@ Promise.resolve({ presets: [{ id: 'oa-live', label: 'OpenAI 실시간 (기본)',
   const ok = PRESETS.find(x => x.id === keep && x.ok) || PRESETS.find(x => !x.need.length); if (ok) $('preset').value = ok.id; const pl = PRESETS.find(x => x.id === $('preset').value); if (pl) document.title = pl.label.replace(/\s*\(.*/, '') + ' | 실전 롤플레이'; }).catch(() => {});
 const saved = load(); wantVoice = saved.voice || ''; setStage(stage); showRanges(); loadVoices();
 if (window.speechSynthesis) speechSynthesis.onvoiceschanged = loadVoices;
-if (!SR) { $('go').disabled = true; $('state').textContent = '이 브라우저는 음성 대화를 지원하지 않아요. 노트북 크롬이나 엣지로 열어 주세요.'; }
+if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) { $('state').textContent = '이 브라우저에서는 마이크를 쓸 수 없어요. 크롬이나 엣지로 열어 주세요 (카톡 안에서 열었다면 «다른 브라우저로 열기»).'; }
 
 })();
 </script>

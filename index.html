@@ -498,7 +498,7 @@ aside #nav{display:none!important}
     <a class="navl" data-r="tool-ap" href="#tool-ap">업체 분석 → 제안 준비<span class="nd">분석 보고서 · AP · PC 준비까지</span></a>
     <a class="navl" data-r="uw" href="#uw">재정심사 → 청약<span class="nd">한도 계산 · 청약 점검 · 상품 자료</span></a>
     <div class="navs" id="uwSub" hidden></div>
-    <a class="navl" data-r="practice" href="#tool-rp">연습하기<span class="nd">AP 롤플레이 · 보험 MBTI</span></a>
+    <a class="navl" data-r="practice" href="#tool-rp">연습하기<span class="nd">AP 롤플레이 · 실전 롤플레이 · 보험 MBTI</span></a>
     <div class="navs" id="practiceSub" hidden></div>
     <a class="navl" data-r="learn" href="#learn">공부하기<span class="nd">컨셉·화법·상품 · 자료 받기 · 물어보기</span></a>
     <div class="navs" id="learnSub" hidden></div>
@@ -569,8 +569,9 @@ aside #nav{display:none!important}
       <li>청약 체크리스트: 원수사·상품·계약 형태를 고르면 이번 청약에 해당하는 항목만 남습니다.</li>
       <li>상품 자료실: 상품마다 요약·주의할 점·준법 유효기간.</li></ul>
       <a class="btn" style="margin-top:10px;align-self:flex-start" href="#uw">열기</a></div>
-    <div class="card"><b>연습하기</b><span>AP 롤플레이 · 보험 MBTI. 연습하고 싶을 때.</span>
+    <div class="card"><b>연습하기</b><span>AP 롤플레이 · 실전 롤플레이 · 보험 MBTI. 연습하고 싶을 때.</span>
       <ul><li>AP 롤플레이: AI 대표님과 말로 연습하고 15단계로 채점받습니다.</li>
+      <li>실전 롤플레이(음성): 미팅 자리 화면에서 AI 대표님과 실제처럼 목소리로 TA·AP·PC·클로징을 연습합니다. 노트북 크롬·엣지에서 이어폰을 끼고.</li>
       <li>보험 MBTI: 52문항, 9분. 내 영업 성향과 맞춤 코칭. «팀 기록에 저장»을 눌러야 지점장이 함께 봅니다.</li></ul>
       <a class="btn" style="margin-top:10px;align-self:flex-start" href="#tool-rp">열기</a></div>
     <div class="card"><b>공부하기</b><span>컨셉 사전, 첫 미팅 화법, 상품별 정리, 신입 가이드, 상품 비교.</span>
@@ -748,6 +749,7 @@ aside #nav{display:none!important}
       <tr><td>청약 승인·거절 사례 (업종, 매출·이익 규모, 나이, 금액, 결과)</td><td>재정심사 사전 예측</td></tr>
       <tr><td>고객이 실제로 물어본 질문</td><td>상품 Q&amp;A, 반론 대응</td></tr>
       <tr><td>나만의 명분 사례 · 예화</td><td>AP 3단계·13단계 개인화</td></tr>
+      <tr><td>현장에서 들은 대표 반론·머뭇거림 (특히 PC·클로징)</td><td><a href="#dc30068af">실전 롤플레이 AI 대표 반응 설계</a> → 실전 롤플레이 AI 대표가 그렇게 반응</td></tr>
     </tbody></table></div>
     <h2>AI가 최근에 배운 것</h2>
     <div id="recent" class="list"></div>
@@ -873,7 +875,7 @@ function renderNav(h){
   const sub=$('#learnSub');sub.hidden=fam!=='learn';
   sub.innerHTML=LEARN.map(c=>`<a class="navl ${c.h===cur?'on':''}" href="#${c.h}">${esc(c.label)}</a>`).join('');
   const ms=$('#practiceSub'),mgrOn=/view=mgr/.test(location.hash);ms.hidden=fam!=='practice';
-  ms.innerHTML=`<a class="navl ${h==='tool-rp'?'on':''}" href="#tool-rp">AP 롤플레이</a><a class="navl ${h==='tool-mbti'&&!mgrOn?'on':''}" href="#tool-mbti">보험 MBTI</a><a class="navl ${mgrOn?'on':''}" href="#tool-mbti?view=mgr">MBTI 지점장 보기</a>`;
+  ms.innerHTML=`<a class="navl ${h==='tool-rp'?'on':''}" href="#tool-rp">AP 롤플레이</a><a class="navl" href="tools/rp-live.html">실전 롤플레이 (음성)</a><a class="navl" href="tools/rp-live-admin.html">실전 롤플레이 기록 (지점장)</a><a class="navl ${h==='tool-mbti'&&!mgrOn?'on':''}" href="#tool-mbti">보험 MBTI</a><a class="navl ${mgrOn?'on':''}" href="#tool-mbti?view=mgr">MBTI 지점장 보기</a>`;
   const gs=$('#guideSub');gs.hidden=fam!=='about';
   gs.innerHTML=GUIDE.map(c=>`<a class="navl ${c.h===h?'on':''}" href="#${c.h}">${esc(c.label)}</a>`).join('');
   const us=$('#uwSub');us.hidden=fam!=='uw';

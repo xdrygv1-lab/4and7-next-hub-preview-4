@@ -68,12 +68,12 @@ document.getElementById('g47f').addEventListener('submit',function(e){e.preventD
   <div class="panel">
     <div class="bar">
       <b id="me"></b>
-      <input id="q" placeholder="연습자 이름으로 찾기" style="flex:1;min-width:160px">
+      <input id="q" placeholder="연습자 이름으로 찾기" style="flex:1;min-width:160px"><input id="br" placeholder="소속 지점으로 찾기" style="flex:1;min-width:140px">
       <select id="st"><option value="">모든 단계</option><option value="TA">TA 전화 약속</option><option value="AP">AP 첫 미팅</option><option value="PC">PC 제안</option><option value="CL">클로징</option></select>
       <button class="btn" id="reload">새로 고침</button><button class="btn" id="out">나가기</button>
     </div>
   </div>
-  <div class="panel scroll"><table class="tbl"><thead><tr><th>날짜</th><th>연습자</th><th>단계</th><th>점수</th><th>길이</th><th>녹음</th><th></th></tr></thead><tbody id="rows"></tbody></table>
+  <div class="panel scroll"><table class="tbl"><thead><tr><th>날짜</th><th>연습자</th><th>지점</th><th>단계</th><th>점수</th><th>길이</th><th>녹음</th><th></th></tr></thead><tbody id="rows"></tbody></table>
   <p class="note" id="cnt"></p></div>
 </section>
 </div>
@@ -94,11 +94,11 @@ async function enter(){
 }
 async function load(){ const r = await api('list'); items = r.items || []; draw(); }
 function draw(){
-  const q = $('q').value.trim(), st = $('st').value;
-  const list = items.filter(x => (!q || (x.who || '').includes(q)) && (!st || x.stage === st));
-  $('rows').innerHTML = list.map(x => `<tr data-r="${esc(x.rid)}" class="${open === x.rid ? 'on' : ''}"><td>${esc(x.saved)}</td><td>${esc(x.who)}</td><td>${esc(SN[x.stage] || x.stage)}</td><td>${x.score === '' || x.score == null ? '-' : esc(x.score)}</td><td>${mm(x.total)}</td><td>${x.audio ? '있음' : '-'}</td>
+  const q = $('q').value.trim(), st = $('st').value, bq = $('br').value.trim();
+  const list = items.filter(x => (!q || (x.who || '').includes(q)) && (!st || x.stage === st) && (!bq || (x.branch || '').includes(bq)));
+  $('rows').innerHTML = list.map(x => `<tr data-r="${esc(x.rid)}" class="${open === x.rid ? 'on' : ''}"><td>${esc(x.saved)}</td><td>${esc(x.who)}</td><td>${esc(x.branch || '-')}</td><td>${esc(SN[x.stage] || x.stage)}</td><td>${x.score === '' || x.score == null ? '-' : esc(x.score)}</td><td>${mm(x.total)}</td><td>${x.audio ? '있음' : '-'}</td>
     <td class="bar"><button class="btn" data-open="${esc(x.rid)}">${open === x.rid ? '닫기' : '보기'}</button>${x.audio ? `<button class="btn" data-dl="audio" data-id="${esc(x.rid)}">녹음</button>` : ''}<button class="btn" data-dl="text" data-id="${esc(x.rid)}">대화록+피드백</button></td></tr>` +
-    (open === x.rid ? `<tr><td colspan="7"><div class="detail" id="det">불러오는 중…</div></td></tr>` : '')).join('');
+    (open === x.rid ? `<tr><td colspan="8"><div class="detail" id="det">불러오는 중…</div></td></tr>` : '')).join('');
   $('cnt').textContent = `기록 ${list.length}건`;
   if (open) detail(open);
 }
@@ -118,7 +118,7 @@ $('rows').onclick = e => { const o = e.target.closest('[data-open]'), d = e.targ
   if (o) { open = open === o.dataset.open ? '' : o.dataset.open; draw(); } if (d) download(d.dataset.id, d.dataset.dl); };
 $('go').onclick = () => { CODE = $('code').value.trim(); enter(); };
 $('code').onkeydown = e => { if (e.key === 'Enter') $('go').click(); };
-$('q').oninput = draw; $('st').onchange = draw; $('reload').onclick = load;
+$('q').oninput = draw; $('br').oninput = draw; $('st').onchange = draw; $('reload').onclick = load;
 $('out').onclick = () => { CODE = ''; try { sessionStorage.removeItem('rp_admin'); } catch (e) {} $('code').value = ''; enter(); };
 enter();
 </script>
